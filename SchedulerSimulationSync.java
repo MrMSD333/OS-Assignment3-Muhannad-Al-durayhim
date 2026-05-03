@@ -54,19 +54,44 @@ class SharedResources {
     public static void incrementContextSwitch() {
         // TODO: Protect this critical section with a lock
         // RACE CONDITION: Multiple threads might read and write simultaneously!
-        contextSwitchCount++;
+        // Protect shared counter using mutual exclusion (ReentrantLock)
+        SharedResources.counterLock.lock();
+        try {
+            // Critical section: updating shared variable
+            contextSwitchCount++;
+        } finally {
+            // Ensure lock is always released to avoid deadlock
+            SharedResources.counterLock.unlock();
+        }
+
     }
 
     // Method to increment completed process counter
     public static void incrementCompletedProcess() {
         // TODO: Protect this critical section with a lock
-        completedProcessCount++;
+        // Protect shared counter using mutual exclusion (ReentrantLock)
+        SharedResources.counterLock.lock();
+        try {
+            // Critical section: updating shared variable
+            completedProcessCount++;
+        } finally {
+            // Ensure lock is always released to avoid deadlock
+            SharedResources.counterLock.unlock();
+        }
     }
 
     // Method to add waiting time
     public static void addWaitingTime(long time) {
         // TODO: Protect this critical section with a lock
-        totalWaitingTime += time;
+        // Protect shared accumulator using mutual exclusion (ReentrantLock)
+        SharedResources.counterLock.lock();
+        try {
+            // Critical section: updating shared variable
+            totalWaitingTime += time;
+        } finally {
+            // Ensure lock is always released to avoid deadlock
+            SharedResources.counterLock.unlock();
+        }
     }
 
     // Method to log execution
