@@ -135,7 +135,14 @@ class Process implements Runnable {
     public void run() {
         // TODO #3: Acquire CPU semaphore before executing
         // This ensures only allowed number of processes run simultaneously
-
+        // Acquire semaphore to ensure exclusive CPU access (binary semaphore)
+        // Acquire semaphore to ensure exclusive CPU access (binary semaphore)
+        try {
+            SharedResources.cpuSemaphore.acquire();
+        } catch (InterruptedException e) {
+            // Handle interruption while waiting for CPU access
+            System.out.println("Semaphore acquisition interrupted for " + name);
+        }
         try {
             if (startTime == -1) {
                 startTime = System.currentTimeMillis();
@@ -198,6 +205,8 @@ class Process implements Runnable {
         } finally {
             // TODO #4: Release CPU semaphore here
             // Always release in finally block to prevent deadlocks!
+            // Release semaphore after execution to allow next process
+            SharedResources.cpuSemaphore.release();
         }
     }
 
@@ -217,6 +226,8 @@ class Process implements Runnable {
 
     public void runToCompletion() {
         // TODO: Similar synchronization needed here
+        // Acquire semaphore to ensure exclusive CPU access
+
         try {
             System.out.println(Colors.BRIGHT_CYAN + "  ⚡ " + Colors.BOLD + Colors.CYAN + name +
                     Colors.RESET + Colors.BRIGHT_CYAN + " is the last process, running to completion" +
