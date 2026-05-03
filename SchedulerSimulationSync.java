@@ -136,7 +136,6 @@ class Process implements Runnable {
         // TODO #3: Acquire CPU semaphore before executing
         // This ensures only allowed number of processes run simultaneously
         // Acquire semaphore to ensure exclusive CPU access (binary semaphore)
-        // Acquire semaphore to ensure exclusive CPU access (binary semaphore)
         try {
             SharedResources.cpuSemaphore.acquire();
         } catch (InterruptedException e) {
@@ -227,22 +226,28 @@ class Process implements Runnable {
     public void runToCompletion() {
         // TODO: Similar synchronization needed here
         // Acquire semaphore to ensure exclusive CPU access
-
         try {
-            System.out.println(Colors.BRIGHT_CYAN + "  ⚡ " + Colors.BOLD + Colors.CYAN + name +
-                    Colors.RESET + Colors.BRIGHT_CYAN + " is the last process, running to completion" +
-                    Colors.RESET + " [" + remainingTime + "ms]");
-            Thread.sleep(remainingTime);
-            remainingTime = 0;
-            completionTime = System.currentTimeMillis();
+            // Acquire semaphore to ensure exclusive CPU access
+            SharedResources.cpuSemaphore.acquire();
+            try {
+                System.out.println(Colors.BRIGHT_CYAN + "  ⚡ " + Colors.BOLD + Colors.CYAN + name +
+                        Colors.RESET + Colors.BRIGHT_CYAN + " is the last process, running to completion" +
+                        Colors.RESET + " [" + remainingTime + "ms]");
+                Thread.sleep(remainingTime);
+                remainingTime = 0;
+                completionTime = System.currentTimeMillis();
 
-            long waitingTime = (completionTime - creationTime) - burstTime;
-            SharedResources.addWaitingTime(waitingTime);
-            SharedResources.incrementCompletedProcess();
+                long waitingTime = (completionTime - creationTime) - burstTime;
+                SharedResources.addWaitingTime(waitingTime);
+                SharedResources.incrementCompletedProcess();
 
-            System.out.println(Colors.BRIGHT_GREEN + "  ✓ " + Colors.BOLD + Colors.CYAN + name +
-                    Colors.RESET + Colors.BRIGHT_GREEN + " finished execution!" + Colors.RESET);
-            System.out.println();
+                System.out.println(Colors.BRIGHT_GREEN + "  ✓ " + Colors.BOLD + Colors.CYAN + name +
+                        Colors.RESET + Colors.BRIGHT_GREEN + " finished execution!" + Colors.RESET);
+                System.out.println();
+            } finally {
+                // Always release semaphore to avoid deadlock
+                SharedResources.cpuSemaphore.release();
+            }
         } catch (InterruptedException e) {
             System.out.println(Colors.RED + "  ✗ " + name + " was interrupted." + Colors.RESET);
         }
